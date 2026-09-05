@@ -14,7 +14,7 @@ export async function POST(req: NextRequest){
             }, {status: 400})
         }
 
-        const {email, password} = result.data
+        const {email, password} = result.data 
         const findUser = await prismaClient.user.findUnique({
             where: {
                 email
