@@ -3,7 +3,14 @@ import prismaClient from "../../../../lib/db";
 
 export async function GET(req: NextRequest){
     try {
-        const users = await prismaClient.user.findMany()
+        const users = await prismaClient.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true
+            }
+        })
         return NextResponse.json({
             msg: "users fetched successfully",
             users
