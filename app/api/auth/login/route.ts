@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prismaClient from "../../../../lib/db";
 import bcrypt from "bcryptjs";
 import { LoginSchema } from "../../../../lib/validator";
+import jwt from 'jsonwebtoken'
 
 export async function POST(req: NextRequest){
     try {
@@ -34,8 +35,15 @@ export async function POST(req: NextRequest){
             }, {status: 400})
         }
 
+        const jwtSecret = process.env.JWT_SECRET!
+
+        const token = jwt.sign({
+            userId: findUser.id
+        }, jwtSecret, {expiresIn: '7d'})
+
         return NextResponse.json({
-            msg: "Login Successfully"
+            msg: "Login Successfully", 
+            token
         }, {status: 200})
     } catch (error) {
         console.error(error)
