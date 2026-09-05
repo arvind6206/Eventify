@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import prismaClient from "../../../../lib/db";
 import bcrypt from "bcryptjs";
+import { SignupSchema } from "../../../../lib/validator";
 
 export async function POST(req: NextRequest){
     try {
-        const {name, email, password, role} = await req.json()
-        if(!email || !password){
+        const body = await req.json()
+        const result = SignupSchema.safeParse(body)
+        
+        if(!result.success){
             return NextResponse.json({
-                msg: "Email and Password role are required"
+                error: result.error.flatten().fieldErrors
             }, {status: 400})
-            
         }
+
+        const {name, email, password, role} = result.data
 
         const existingUser = await prismaClient.user.findUnique({
             where: {
@@ -24,7 +28,7 @@ export async function POST(req: NextRequest){
             }, {status: 400})
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10)
+        const hashedPassword = await bcrypt.hash(result.data.password, 10)
 
         const user = await prismaClient.user.create({
             data: {
