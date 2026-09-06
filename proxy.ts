@@ -13,9 +13,17 @@ export async function proxy(req: NextRequest) {
 
     const token = authHeader.split(" ")[1]
 
-    await jwtVerify(token, jwtSecret)
+    const { payload } = await jwtVerify(token, jwtSecret)
 
-    return NextResponse.next()
+    // forward the userId to the actual route handler via a custom header
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set("x-user-id", payload.id as string)
+
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
   } catch (error) {
     return NextResponse.json({ msg: "Invalid or expired token" }, { status: 401 })
   }

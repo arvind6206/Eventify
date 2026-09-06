@@ -25,3 +25,49 @@ USER
 ADMIN
 ORGANIZER
 }
+
+model Events{
+id                    String                          @id @default(uuid())
+title                 String
+description           String?
+
+category              EventCategory
+status                EventStatus
+
+startTime             DateTime
+endTime               DateTime
+
+venueId               String
+organizerId           String
+
+imageUrl              String?
+
+createdAt             DateTime                          @default(now())
+updatedAt             DateTime                          @updatedAt
+
+venue                 venue                             @relation(fields: [venueId], references: [id])
+organizer             User                              @relation(fields: [organizerId], references: [id])
+
+@@index([organizerId])
+@@index([venueId])
+@@index([startTime])
+@@index([status])
+}
+
+
+enum EventCategory {
+  CONCERT
+  SPORTS
+  CONFERENCE
+  COMEDY
+  THEATRE
+  WORKSHOP
+  OTHER
+} 
+
+enum EventStatus{
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
