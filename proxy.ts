@@ -4,56 +4,38 @@ import { jwtVerify } from "jose";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined in .env");
+  throw new Error("JWT_SECRET is not defined");
 }
 
 const secret = new TextEncoder().encode(JWT_SECRET);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const method = request.method;
 
-  if (
-    pathname.startsWith("/api/auth/register") ||
-    pathname.startsWith("/api/auth/login")
-  ) {
+  // Skip auth endpoints (register, login, etc.)
+  if (pathname.startsWith("/api/auth")) {
+    return NextResponse.next();
+  }
+
+  // Allow GET requests without authentication
+  if (method === "GET") {
     return NextResponse.next();
   }
 
   const authHeader = request.headers.get("authorization");
 
-  if (!authHeader) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       {
         success: false,
-        message: "Authorization header is missing",
+        message: "Authorization header is missing or invalid",
       },
       { status: 401 }
     );
   }
 
-  if (!authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Invalid authorization format",
-      },
-      { status: 401 }
-    );
-  }
-
-  const parts = authHeader.split(" ");
-
-if (parts.length !== 2 || parts[0] !== "Bearer") {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Invalid authorization format",
-    },
-    { status: 401 }
-  );
-}
-
-const token = parts[1];
+  const token = authHeader.split(" ")[1];
 
   try {
     const { payload } = await jwtVerify(token, secret);
@@ -68,10 +50,17 @@ const token = parts[1];
       );
     }
 
-    return NextResponse.next();
-  } catch (error) {
-    console.error("JWT verification failed:", error);
+    // Forward userId to route via x-user-id header
+    const headers = new Headers(request.headers);
+    headers.set("x-user-id", payload.userId as string);
 
+    return NextResponse.next({
+      request: {
+        headers,
+      },
+    });
+
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -83,7 +72,5 @@ const token = parts[1];
 }
 
 export const config = {
-  matcher: [
-    "/api/:path*",
-  ],
+  matcher: ["/api/:path*"],
 };

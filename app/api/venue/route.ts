@@ -3,6 +3,25 @@ import { VenueSchema } from "../../../lib/validator/venueValidation";
 import prismaClient from "../../../lib/db";
 import { getUserIdFromRequest } from "../../../lib/getuserId";
 
+export async function GET(req: NextRequest) {
+  try {
+    const venues = await prismaClient.venue.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    return NextResponse.json({
+        msg: "Venues Fetched successfully",
+      venues
+    }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({
+      msg: "Internal Server error"
+    }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest){
     try {
         const body = await req.json()
