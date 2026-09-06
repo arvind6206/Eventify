@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
@@ -12,48 +7,123 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-id        String   @id @default(uuid())
-name      String?
-email     String   @unique
-password  String
-role      Role     @default(USER) 
-}
-
 enum Role {
-USER
-ADMIN
-ORGANIZER
+  USER
+  ADMIN
+  ORGANIZER
 }
 
-model Events{
-id                    String                          @id @default(uuid())
-title                 String
-description           String?
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
 
-category              EventCategory
-status                EventStatus
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-startTime             DateTime
-endTime               DateTime
-
-venueId               String
-organizerId           String
-
-imageUrl              String?
-
-createdAt             DateTime                          @default(now())
-updatedAt             DateTime                          @updatedAt
-
-venue                 venue                             @relation(fields: [venueId], references: [id])
-organizer             User                              @relation(fields: [organizerId], references: [id])
-
-@@index([organizerId])
-@@index([venueId])
-@@index([startTime])
-@@index([status])
+  events    Event[]
 }
 
+model Venue {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+
+  address     String
+  city        String
+  state       String
+  country     String
+  postalCode  String
+  capacity    Int
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  events      Event[]
+  seats       Seat[]
+}
+
+enum SeatType {
+  REGULAR
+  PREMIUM
+  VIP
+}
+
+model Seat {
+  id        String   @id @default(uuid())
+
+  venueId   String
+  row       String
+  number    Int
+  section   String?
+  type      SeatType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  venue     Venue       @relation(fields: [venueId], references: [id])
+  eventSeats EventSeat[]
+
+  @@unique([venueId, row, number])
+  @@index([venueId])
+}
+
+model Event {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+
+  category    EventCategory
+  status      EventStatus
+
+  startTime   DateTime
+  endTime     DateTime
+
+  venueId     String
+  organizerId String
+
+  imageUrl    String?
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  venue       Venue         @relation(fields: [venueId], references: [id])
+  organizer   User          @relation(fields: [organizerId], references: [id])
+  eventSeats  EventSeat[]
+
+  @@index([organizerId])
+  @@index([venueId])
+  @@index([startTime])
+  @@index([status])
+}
+
+model EventSeat {
+  id        String         @id @default(uuid())
+
+  eventId   String
+  seatId    String
+
+  status    EventSeatStatus
+
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  event     Event          @relation(fields: [eventId], references: [id])
+  seat      Seat           @relation(fields: [seatId], references: [id])
+
+  @@unique([eventId, seatId])
+  @@index([eventId])
+  @@index([seatId])
+  @@index([status])
+}
+
+enum EventSeatStatus {
+  AVAILABLE
+  RESERVED
+  BOOKED
+}
 
 enum EventCategory {
   CONCERT
@@ -63,9 +133,9 @@ enum EventCategory {
   THEATRE
   WORKSHOP
   OTHER
-} 
+}
 
-enum EventStatus{
+enum EventStatus {
   DRAFT
   PUBLISHED
   CANCELLED
