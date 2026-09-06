@@ -19,7 +19,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Allow GET requests without authentication
-  if (method === "GET") {
+  if (method === "GET" || "PUT" || "PATCH" || "DELETE") {
     return NextResponse.next();
   }
 
