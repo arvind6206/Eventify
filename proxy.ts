@@ -1,34 +1,89 @@
-import { NextRequest, NextResponse } from "next/server"
-import { jwtVerify } from "jose"
+import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 
-const jwtSecret = new TextEncoder().encode(process.env.JWT_SECRET!)
+const JWT_SECRET = process.env.JWT_SECRET;
 
-export async function proxy(req: NextRequest) {
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in .env");
+}
+
+const secret = new TextEncoder().encode(JWT_SECRET);
+
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (
+    pathname.startsWith("/api/auth/register") ||
+    pathname.startsWith("/api/auth/login")
+  ) {
+    return NextResponse.next();
+  }
+
+  const authHeader = request.headers.get("authorization");
+
+  if (!authHeader) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Authorization header is missing",
+      },
+      { status: 401 }
+    );
+  }
+
+  if (!authHeader.startsWith("Bearer ")) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Invalid authorization format",
+      },
+      { status: 401 }
+    );
+  }
+
+  const parts = authHeader.split(" ");
+
+if (parts.length !== 2 || parts[0] !== "Bearer") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Invalid authorization format",
+    },
+    { status: 401 }
+  );
+}
+
+const token = parts[1];
+
   try {
-    const authHeader = req.headers.get("authorization")
+    const { payload } = await jwtVerify(token, secret);
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ msg: "token is missing" }, { status: 401 })
+    if (!payload.userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid token",
+        },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.split(" ")[1]
-
-    const { payload } = await jwtVerify(token, jwtSecret)
-
-    // forward the userId to the actual route handler via a custom header
-    const requestHeaders = new Headers(req.headers)
-    requestHeaders.set("x-user-id", payload.id as string)
-
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
+    return NextResponse.next();
   } catch (error) {
-    return NextResponse.json({ msg: "Invalid or expired token" }, { status: 401 })
+    console.error("JWT verification failed:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Invalid or expired token",
+      },
+      { status: 401 }
+    );
   }
 }
 
 export const config = {
-  matcher: ["/api/protected/:path*"],
-}
+  matcher: [
+    "/api/:path*",
+  ],
+};
