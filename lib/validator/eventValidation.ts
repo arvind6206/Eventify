@@ -13,10 +13,10 @@ export const EventSchema = z.object({
     "OTHER",
   ]),
 
-  status: z.enum(["AVAILABLE", "RESERVED", "BOOKED"]),
+  status: z.enum(["DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED"]),
 
-  startTime: z.coerce.date(),
-  sendTime: z.coerce.date(),
+  startTime: z.string(),
+  endTime: z.string(),
 
   venueId: z.string().uuid(),
 
