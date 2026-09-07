@@ -78,8 +78,8 @@ model Event {
   category    EventCategory
   status      EventStatus
 
-  startTime   DateTime
-  endTime     DateTime
+  startTime   String
+  endTime     String
 
   venueId     String
   organizerId String
