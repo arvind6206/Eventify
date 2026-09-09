@@ -104,3 +104,51 @@ export async function POST(
     );
   }
 }
+
+export async function GET(req: NextRequest,
+    {params}: {params: Promise<{id: string}>}
+){
+    try {
+        
+        const {id} = await params;
+        if(!id){
+            return NextResponse.json({
+                msg: "eventId is required"
+            }, {status: 400})
+        }
+
+        const findEvent = await prismaClient.event.findFirst({
+            where: {
+                id
+            }
+        })
+
+        if(!findEvent){
+            return NextResponse.json({
+                msg: "Event not found"
+            }, {status: 404})
+        }
+
+        const tickets = await prismaClient.ticketType.findMany({
+            where: {
+                eventId: id
+            }
+        })
+
+        if(tickets.length === 0){
+            return NextResponse.json({
+                msg: "ticket not found"
+            }, {status: 404})
+        }
+
+        return NextResponse.json({
+            msg: "Tickets fetched successfully",
+            tickets
+        }, {status: 200})
+    } catch (error) {
+        console.error(error)
+        return NextResponse.json({
+            msg: "Internal Server Error"
+        }, {status: 500})
+    }
+}
