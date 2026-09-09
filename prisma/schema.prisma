@@ -63,11 +63,16 @@ model Seat {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  venue     Venue       @relation(fields: [venueId], references: [id])
+  venue      Venue       @relation(fields: [venueId], references: [id])
   eventSeats EventSeat[]
 
   @@unique([venueId, row, number])
   @@index([venueId])
+}
+
+enum EventType {
+  SEATED
+  GENERAL_ADMISSION
 }
 
 model Event {
@@ -76,6 +81,7 @@ model Event {
   description String?
 
   category    EventCategory
+  type        EventType    @default(SEATED)
   status      EventStatus
 
   startTime   String
@@ -91,32 +97,57 @@ model Event {
 
   venue       Venue         @relation(fields: [venueId], references: [id])
   organizer   User          @relation(fields: [organizerId], references: [id])
+
   eventSeats  EventSeat[]
+  ticketTypes TicketType[]
 
   @@index([organizerId])
   @@index([venueId])
   @@index([startTime])
   @@index([status])
+  @@index([type])
 }
 
 model EventSeat {
-  id        String         @id @default(uuid())
+  id           String          @id @default(uuid())
 
-  eventId   String
-  seatId    String
+  eventId      String
+  seatId       String
+  ticketTypeId String?
 
-  status    EventSeatStatus
+  status       EventSeatStatus
 
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  event     Event          @relation(fields: [eventId], references: [id])
-  seat      Seat           @relation(fields: [seatId], references: [id])
+  event        Event       @relation(fields: [eventId], references: [id])
+  seat         Seat        @relation(fields: [seatId], references: [id])
+  ticketType   TicketType? @relation(fields: [ticketTypeId], references: [id])
 
   @@unique([eventId, seatId])
   @@index([eventId])
   @@index([seatId])
+  @@index([ticketTypeId])
   @@index([status])
+}
+
+model TicketType {
+  id          String   @id @default(uuid())
+
+  eventId     String
+  name        String
+  description String?
+  price       Int
+  quantity    Int
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event       Event       @relation(fields: [eventId], references: [id])
+  eventSeats  EventSeat[]
+
+  @@unique([eventId, name])
+  @@index([eventId])
 }
 
 enum EventSeatStatus {
