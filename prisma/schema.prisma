@@ -25,6 +25,7 @@ model User {
 
   events    Event[]
   reservations Reservation[]
+  bookings     Booking[]
 
 }
 
@@ -103,6 +104,7 @@ model Event {
   eventSeats  EventSeat[]
   ticketTypes TicketType[]
   reservations Reservation[]
+  bookings     Booking[]
 
   @@index([organizerId])
   @@index([venueId])
@@ -128,6 +130,7 @@ model EventSeat {
   ticketType   TicketType? @relation(fields: [ticketTypeId], references: [id])
 
   reservations Reservation[]
+  bookingItems BookingItem[]
 
   @@unique([eventId, seatId])
   @@index([eventId])
@@ -151,6 +154,7 @@ model TicketType {
   event       Event       @relation(fields: [eventId], references: [id])
   eventSeats  EventSeat[]
   reservations Reservation[]
+  bookingItems BookingItem[]
 
   @@unique([eventId, name])
   @@index([eventId])
@@ -211,4 +215,54 @@ enum ReservationStatus {
   EXPIRED
   CONFIRMED
   CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REFUNDED
+}
+
+model Booking{
+  id                String              @id @default(uuid())
+  userId            String
+  eventId           String
+
+  totalAmount       Decimal
+  status            BookingStatus
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  bookingItems      BookingItem[]
+
+  user              User                @relation(fields: [userId], references: [id])
+  event             Event               @relation(fields: [eventId], references: [id])
+
+  @@index([userId])
+  @@index([eventId])
+  @@index([status])
+}
+
+model BookingItem{
+  id                String              @id @default(uuid())
+
+  bookingId         String
+  eventSeatId       String?
+  ticketTypeId      String?
+
+  quantity          Int
+  unitPrice         Decimal
+  totalPrice        Decimal
+
+  createdAt         DateTime            @default(now())
+  
+  booking           Booking             @relation(fields: [bookingId], references: [id])
+  eventSeat         EventSeat?          @relation(fields: [eventSeatId], references: [id])
+  ticketType        TicketType?          @relation(fields: [ticketTypeId], references: [id])
+
+  @@index([bookingId])
+  @@index([eventSeatId])
+  @@index([ticketTypeId])
 }
