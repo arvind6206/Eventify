@@ -26,6 +26,7 @@ model User {
   events    Event[]
   reservations Reservation[]
   bookings     Booking[]
+  payments     Payment[]
 
 }
 
@@ -197,6 +198,8 @@ model Reservation{
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  payment       Payment?
+
   user           User        @relation(fields: [userId], references: [id]) 
   event          Event       @relation(fields: [eventId], references: [id]) 
   eventSeat      EventSeat?   @relation(fields: [eventSeatId], references: [id]) 
@@ -236,6 +239,7 @@ model Booking{
   updatedAt         DateTime            @updatedAt
 
   bookingItems      BookingItem[]
+  payment           Payment?
 
   user              User                @relation(fields: [userId], references: [id])
   event             Event               @relation(fields: [eventId], references: [id])
@@ -265,4 +269,44 @@ model BookingItem{
   @@index([bookingId])
   @@index([eventSeatId])
   @@index([ticketTypeId])
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CARD
+  UPI
+  NET_BANKING
+  WALLET
+}
+
+model Payment {
+  id               String        @id @default(uuid())
+
+  reservationId    String        @unique
+  bookingId        String?       @unique
+  userId           String
+
+  amount           Decimal
+  status           PaymentStatus @default(PENDING)
+  method           PaymentMethod?
+
+  transactionId    String?       @unique
+  gatewayPaymentId String?       @unique
+  gatewayOrderId   String?       @unique
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  reservation      Reservation  @relation(fields: [reservationId], references: [id])
+  booking          Booking?     @relation(fields: [bookingId], references: [id])
+  user             User         @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
 }
