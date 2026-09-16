@@ -240,6 +240,7 @@ model Booking{
 
   bookingItems      BookingItem[]
   payment           Payment?
+  tickets           Ticket[]
 
   user              User                @relation(fields: [userId], references: [id])
   event             Event               @relation(fields: [eventId], references: [id])
@@ -259,6 +260,8 @@ model BookingItem{
   quantity          Int
   unitPrice         Decimal
   totalPrice        Decimal
+
+  tickets           Ticket[]
 
   createdAt         DateTime            @default(now())
   
@@ -308,5 +311,33 @@ model Payment {
   user             User         @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([status])
+}
+
+enum TicketStatus {
+  ACTIVE
+  USED
+  CANCELLED
+}
+
+model Ticket {
+  id            String       @id @default(uuid())
+  bookingId     String
+  bookingItemId String
+
+  ticketCode    String       @unique
+  status        TicketStatus @default(ACTIVE)
+
+  issuedAt      DateTime     @default(now())
+  usedAt        DateTime?
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  booking       Booking      @relation(fields: [bookingId], references: [id])
+  bookingItem   BookingItem  @relation(fields: [bookingItemId], references: [id])
+
+  @@index([bookingId])
+  @@index([bookingItemId])
   @@index([status])
 }
