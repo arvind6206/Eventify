@@ -95,3 +95,54 @@ export async function POST(req: NextRequest){
         }, {status: 500})
     }
 }
+
+export async function GET(req: NextRequest){
+    try {
+        const userId = await getUserIdFromRequest(req)
+        if(!userId){
+            return NextResponse.json({
+                msg: "Unauthenticated"
+            }, {status: 401})
+        }
+
+        
+
+        const tickets = await prismaClient.ticket.findMany({
+            where: {
+                booking: {
+                    userId
+                }
+            },
+            include: {
+                booking: {
+                    include: {
+                        event: true
+                    }
+                },
+                bookingItem: {
+                    include: {
+                        ticketType: true,
+                        eventSeat: {
+                            include: {
+                                seat: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                issuedAt: "desc"
+            }
+        })
+
+        return NextResponse.json({
+            msg: "Tickets fetched successfully",
+            tickets
+        }, {status: 200})
+    } catch (error) {
+        console.error(error)
+        return NextResponse.json({
+            msg: "Internal Server Error"
+        }, {status: 500})
+    }
+}
