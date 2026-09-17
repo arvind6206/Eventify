@@ -170,7 +170,7 @@ export async function POST(
 
                     // Someone else reserved it meanwhile
                     if (updatedSeat.count !== 1) {
-                        throw new Error("Seat not available");
+                        throw new Error("SEAT_NOT_AVAILABLE");
                     }
 
                     const expiresAt = new Date(

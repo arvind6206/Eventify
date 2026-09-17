@@ -1,12 +1,15 @@
 import { Booking, Reservation, Ticket } from "./types";
 import { EmptyState, formatDate, formatMoney, Status } from "./ui";
+import { Button } from "../ui/button";
 
 export function BookingsView({
   bookings,
   reservations,
+  onPay,
 }: {
   bookings: Booking[];
   reservations: Reservation[];
+  onPay: (reservation: Reservation) => void;
 }) {
   return (
     <>
@@ -84,7 +87,18 @@ export function BookingsView({
                       Expires {formatDate(item.expiresAt)}
                     </p>
                   </div>
-                  <Status value={item.status} />
+                  <div className="flex items-center gap-2">
+                    <Status value={item.status} />
+                    {item.status === "ACTIVE" && (
+                      <Button
+                        size="sm"
+                        onClick={() => onPay(item)}
+                        className="text-xs"
+                      >
+                        Pay now
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

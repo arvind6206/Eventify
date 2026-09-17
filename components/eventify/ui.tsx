@@ -1,4 +1,6 @@
 import { ReactNode } from "react";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 
 export const inputClass =
   "h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:ring-4 focus:ring-violet-100";
@@ -38,20 +40,18 @@ export function Brand() {
 }
 
 export function Status({ value }: { value: string }) {
-  const tones: Record<string, string> = {
-    PUBLISHED: "bg-emerald-50 text-emerald-700",
-    CONFIRMED: "bg-emerald-50 text-emerald-700",
-    ACTIVE: "bg-sky-50 text-sky-700",
-    DRAFT: "bg-amber-50 text-amber-700",
-    CANCELLED: "bg-rose-50 text-rose-700",
-    USED: "bg-slate-100 text-slate-600",
+  const variantMap: Record<string, "success" | "warning" | "destructive" | "default" | "info"> = {
+    PUBLISHED: "success",
+    CONFIRMED: "success",
+    ACTIVE: "info",
+    DRAFT: "warning",
+    CANCELLED: "destructive",
+    USED: "default",
   };
   return (
-    <span
-      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${tones[value] ?? "bg-slate-100 text-slate-600"}`}
-    >
+    <Badge variant={variantMap[value] || "default"}>
       {value.toLowerCase()}
-    </span>
+    </Badge>
   );
 }
 
@@ -90,13 +90,15 @@ export function Modal({
           <h2 className="text-xl font-semibold tracking-tight text-slate-950">
             {title}
           </h2>
-          <button
+          <Button
+            size="icon"
+            variant="ghost"
             onClick={close}
             aria-label="Close dialog"
-            className="grid h-9 w-9 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            className="h-9 w-9 rounded-full"
           >
             ×
-          </button>
+          </Button>
         </div>
         {children}
       </div>

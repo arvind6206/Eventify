@@ -11,7 +11,7 @@ export async function GET(req: NextRequest,
         if(!id){
             return NextResponse.json({
                 msg: "id is required"
-            })
+            }, {status: 400})
         }
 
         const findVenue = await prismaClient.venue.findUnique({
@@ -23,13 +23,13 @@ export async function GET(req: NextRequest,
         if(!findVenue){
             return NextResponse.json({
                 msg: "Venue not found"
-            }, {status: 400})
+            }, {status: 404})
         }
 
         return NextResponse.json({
             msg: "Venue found successfully",
             findVenue
-        })
+        }, {status: 200})
     } catch (error) {
         console.error(error)
         return NextResponse.json({

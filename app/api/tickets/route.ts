@@ -42,7 +42,7 @@ export async function POST(req: NextRequest){
 
         if(booking.status !== 'CONFIRMED'){
             return NextResponse.json({
-                msg: "Tickets can only be generaed for a confirmed booking"
+                msg: "Tickets can only be generated for a confirmed booking"
             }, {status: 409})
         }
 
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest){
         })
 
         return NextResponse.json({
-            msg: "Tickets generated sucessfully",
+            msg: "Tickets generated successfully",
             tickets
         }, {status: 201})
 

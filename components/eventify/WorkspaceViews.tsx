@@ -1,4 +1,4 @@
-import { Booking, EventRecord, Reservation, Ticket, Venue } from "./types";
+import { Booking, EventRecord, Reservation, Ticket, Venue, Seat, UserRole } from "./types";
 import {
   EmptyState,
   formatDate,
@@ -6,17 +6,21 @@ import {
   primaryButton,
   Status,
 } from "./ui";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 
 export function OverviewView({
   events,
   bookings,
   reservations,
   onCreate,
+  userRole,
 }: {
   events: EventRecord[];
   bookings: Booking[];
   reservations: Reservation[];
-  onCreate: () => void;
+  onCreate?: () => void;
+  userRole: UserRole;
 }) {
   const total = bookings
     .filter((item) => item.status === "CONFIRMED")
@@ -59,12 +63,14 @@ export function OverviewView({
               event, then add ticket types when you’re ready.
             </p>
           </div>
-          <button
-            onClick={onCreate}
-            className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-violet-100"
-          >
-            + Create event
-          </button>
+          {onCreate && (
+            <button
+              onClick={onCreate}
+              className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-violet-100"
+            >
+              + Create event
+            </button>
+          )}
         </div>
       </div>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -144,13 +150,17 @@ export function EventsView({
   onSearch,
   onCreate,
   onTicket,
+  onBook,
+  userRole,
 }: {
   events: EventRecord[];
   venues: Venue[];
   search: string;
   onSearch: (value: string) => void;
-  onCreate: () => void;
-  onTicket: (id: string) => void;
+  onCreate?: () => void;
+  onTicket?: (id: string) => void;
+  onBook: (id: string) => void;
+  userRole: UserRole;
 }) {
   return (
     <>
@@ -161,9 +171,11 @@ export function EventsView({
             Build an experience your audience remembers.
           </p>
         </div>
-        <button onClick={onCreate} className={primaryButton}>
-          + New event
-        </button>
+        {onCreate && (
+          <button onClick={onCreate} className={primaryButton}>
+            + New event
+          </button>
+        )}
       </div>
       <div className="mt-6 flex h-11 max-w-md items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
         <span className="text-slate-400">⌕</span>
@@ -182,6 +194,7 @@ export function EventsView({
               event={event}
               venue={venues.find((venue) => venue.id === event.venueId)}
               onTicket={onTicket}
+              onBook={onBook}
             />
           ))}
         </div>
@@ -215,10 +228,12 @@ function EventCard({
   event,
   venue,
   onTicket,
+  onBook,
 }: {
   event: EventRecord;
   venue?: Venue;
   onTicket: (id: string) => void;
+  onBook: (id: string) => void;
 }) {
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60">
@@ -248,33 +263,50 @@ function EventCard({
           <span className="truncate pr-3 text-xs text-slate-500">
             {venue?.name ?? "Venue not found"}
           </span>
-          <button
-            onClick={() => onTicket(event.id)}
-            className="shrink-0 rounded-lg bg-violet-50 px-2.5 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-100"
-          >
-            Add tickets
-          </button>
+          <div className="flex gap-2">
+            {onTicket && (
+              <button
+                onClick={() => onTicket(event.id)}
+                className="shrink-0 rounded-lg bg-violet-50 px-2.5 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-100"
+              >
+                Add tickets
+              </button>
+            )}
+            <button
+              onClick={() => onBook(event.id)}
+              className="shrink-0 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+            >
+              Book now
+            </button>
+          </div>
         </div>
       </div>
     </article>
   );
 }
 
-export function VenuesView({ venues }: { venues: Venue[] }) {
+export function VenuesView({ venues, onCreate, onAddSeat, userRole }: { venues: Venue[]; onCreate?: () => void; onAddSeat?: (venueId: string) => void; userRole: UserRole }) {
   return (
     <>
-      <div>
-        <h2 className="text-xl font-semibold tracking-tight">Venues</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          The spaces that bring your events to life.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">Venues</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            The spaces that bring your events to life.
+          </p>
+        </div>
+        {onCreate && (
+          <button onClick={onCreate} className={primaryButton}>
+            + New venue
+          </button>
+        )}
       </div>
       {venues.length ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {venues.map((venue) => (
             <article
               key={venue.id}
-              className="rounded-[1.5rem] border border-slate-200 bg-white p-5"
+              className="rounded-[1.5rem] border border-slate-200 bg-white p-5 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60"
             >
               <div className="flex items-start justify-between">
                 <span className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-50 text-lg">
@@ -295,6 +327,21 @@ export function VenuesView({ venues }: { venues: Venue[] }) {
                   {venue.description}
                 </p>
               )}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {venue.seats && venue.seats.length > 0 && (
+                  <Badge variant="info">{venue.seats.length} seats</Badge>
+                )}
+                {onAddSeat && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => onAddSeat(venue.id)}
+                    className="text-xs"
+                  >
+                    + Add Seat
+                  </Button>
+                )}
+              </div>
             </article>
           ))}
         </div>
@@ -302,7 +349,15 @@ export function VenuesView({ venues }: { venues: Venue[] }) {
         <div className="mt-6">
           <EmptyState
             title="No venues available"
-            body="Venues are managed by administrators. Once one is created, it will appear here for event setup."
+            body="Venues are managed by administrators. Create your first venue to enable event creation."
+            action={
+              <button
+                onClick={onCreate}
+                className="text-sm font-semibold text-violet-700"
+              >
+                Create a venue →
+              </button>
+            }
           />
         </div>
       )}

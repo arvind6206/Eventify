@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined");
+  throw new Error("JWT_SECRET is not defined in environment variables");
 }
 
 const secret = new TextEncoder().encode(JWT_SECRET);

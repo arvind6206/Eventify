@@ -1,6 +1,11 @@
 import { FormEvent } from "react";
 import { EventRecord, Venue } from "./types";
 import { EmptyState, Field, inputClass, Modal, primaryButton } from "./ui";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Textarea } from "../ui/textarea";
 
 export function EventForm({
   venues,
@@ -21,91 +26,107 @@ export function EventForm({
       ) : (
         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Field label="Event name">
-              <input
-                required
-                name="title"
-                className={inputClass}
-                placeholder="The Midnight Garden"
-              />
-            </Field>
+            <Label htmlFor="title">Event name</Label>
+            <Input
+              required
+              id="title"
+              name="title"
+              placeholder="The Midnight Garden"
+              className="mt-2"
+            />
           </div>
-          <Field label="Category">
-            <select
-              name="category"
-              defaultValue="CONCERT"
-              className={inputClass}
-            >
-              {[
-                "CONCERT",
-                "SPORTS",
-                "CONFERENCE",
-                "COMEDY",
-                "THEATRE",
-                "WORKSHOP",
-                "OTHER",
-              ].map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Status">
-            <select name="status" defaultValue="DRAFT" className={inputClass}>
-              {["DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED"].map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </Field>
-          <div className="sm:col-span-2">
-            <Field label="Venue">
-              <select required name="venueId" className={inputClass}>
-                {venues.map((venue) => (
-                  <option key={venue.id} value={venue.id}>
-                    {venue.name} · {venue.city}
-                  </option>
+          <div>
+            <Label htmlFor="category">Category</Label>
+            <Select name="category" defaultValue="CONCERT">
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  "CONCERT",
+                  "SPORTS",
+                  "CONFERENCE",
+                  "COMEDY",
+                  "THEATRE",
+                  "WORKSHOP",
+                  "OTHER",
+                ].map((item) => (
+                  <SelectItem key={item} value={item}>{item}</SelectItem>
                 ))}
-              </select>
-            </Field>
+              </SelectContent>
+            </Select>
           </div>
-          <Field label="Starts">
-            <input
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select name="status" defaultValue="DRAFT">
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {["DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED"].map((item) => (
+                  <SelectItem key={item} value={item}>{item}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="venueId">Venue</Label>
+            <Select name="venueId" required>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select venue" />
+              </SelectTrigger>
+              <SelectContent>
+                {venues.map((venue) => (
+                  <SelectItem key={venue.id} value={venue.id}>
+                    {venue.name} · {venue.city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="startTime">Starts</Label>
+            <Input
               required
-              type="datetime-local"
+              id="startTime"
               name="startTime"
-              className={inputClass}
-            />
-          </Field>
-          <Field label="Ends">
-            <input
-              required
               type="datetime-local"
-              name="endTime"
-              className={inputClass}
+              className="mt-2"
             />
-          </Field>
-          <div className="sm:col-span-2">
-            <Field label="Cover image URL (optional)">
-              <input
-                type="url"
-                name="imageUrl"
-                className={inputClass}
-                placeholder="https://…"
-              />
-            </Field>
+          </div>
+          <div>
+            <Label htmlFor="endTime">Ends</Label>
+            <Input
+              required
+              id="endTime"
+              name="endTime"
+              type="datetime-local"
+              className="mt-2"
+            />
           </div>
           <div className="sm:col-span-2">
-            <Field label="Description">
-              <textarea
-                name="description"
-                rows={3}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-                placeholder="What makes this event special?"
-              />
-            </Field>
+            <Label htmlFor="imageUrl">Cover image URL (optional)</Label>
+            <Input
+              id="imageUrl"
+              name="imageUrl"
+              type="url"
+              placeholder="https://…"
+              className="mt-2"
+            />
           </div>
-          <button className={`sm:col-span-2 ${primaryButton}`}>
+          <div className="sm:col-span-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              name="description"
+              rows={3}
+              placeholder="What makes this event special?"
+              className="mt-2"
+            />
+          </div>
+          <Button type="submit" className="sm:col-span-2">
             Create event
-          </button>
+          </Button>
         </form>
       )}
     </Modal>
@@ -131,48 +152,52 @@ export function TicketForm({
       </p>
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <Field label="Ticket name">
-            <input
-              required
-              name="name"
-              className={inputClass}
-              placeholder="General admission"
-            />
-          </Field>
-        </div>
-        <Field label="Price (₹)">
-          <input
+          <Label htmlFor="name">Ticket name</Label>
+          <Input
             required
-            min="1"
-            type="number"
+            id="name"
+            name="name"
+            placeholder="General admission"
+            className="mt-2"
+          />
+        </div>
+        <div>
+          <Label htmlFor="price">Price (₹)</Label>
+          <Input
+            required
+            id="price"
             name="price"
-            className={inputClass}
-            placeholder="999"
-          />
-        </Field>
-        <Field label="Quantity">
-          <input
-            required
-            min="0"
             type="number"
-            name="quantity"
-            className={inputClass}
-            placeholder="100"
+            min="1"
+            placeholder="999"
+            className="mt-2"
           />
-        </Field>
-        <div className="sm:col-span-2">
-          <Field label="Description (optional)">
-            <textarea
-              name="description"
-              rows={3}
-              className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-              placeholder="What does this ticket include?"
-            />
-          </Field>
         </div>
-        <button className={`sm:col-span-2 ${primaryButton}`}>
+        <div>
+          <Label htmlFor="quantity">Quantity</Label>
+          <Input
+            required
+            id="quantity"
+            name="quantity"
+            type="number"
+            min="0"
+            placeholder="100"
+            className="mt-2"
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Label htmlFor="description">Description (optional)</Label>
+          <Textarea
+            id="description"
+            name="description"
+            rows={3}
+            placeholder="What does this ticket include?"
+            className="mt-2"
+          />
+        </div>
+        <Button type="submit" className="sm:col-span-2">
           Add ticket type
-        </button>
+        </Button>
       </form>
     </Modal>
   );
