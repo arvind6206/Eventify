@@ -5,29 +5,24 @@ import { ValidateTicketSchema } from "../../../../lib/validator/ticketValidator"
 
 export async function POST(req: NextRequest) {
     try {
-        // 1. Authenticate user
         const userId = await getUserIdFromRequest(req);
 
         if (!userId) {
             return NextResponse.json(
                 {
-                    success: false,
                     msg: "Unauthenticated"
                 },
                 { status: 401 }
             );
         }
 
-        // 2. Read request body
         const body = await req.json();
 
-        // 3. Validate request body
         const result = ValidateTicketSchema.safeParse(body);
 
         if (!result.success) {
             return NextResponse.json(
                 {
-                    success: false,
                     msg: "Invalid request data",
                     errors: result.error.flatten().fieldErrors
                 },
@@ -47,7 +42,6 @@ export async function POST(req: NextRequest) {
         if (!user) {
             return NextResponse.json(
                 {
-                    success: false,
                     msg: "User not found"
                 },
                 { status: 404 }
@@ -58,7 +52,6 @@ export async function POST(req: NextRequest) {
         if (user.role !== "ADMIN" && user.role !== "ORGANIZER") {
             return NextResponse.json(
                 {
-                    success: false,
                     msg: "You are not allowed to validate tickets"
                 },
                 { status: 403 }
@@ -93,7 +86,6 @@ export async function POST(req: NextRequest) {
         if (!ticket) {
             return NextResponse.json(
                 {
-                    success: false,
                     msg: "Ticket not found"
                 },
                 { status: 404 }
@@ -108,7 +100,6 @@ export async function POST(req: NextRequest) {
         ) {
             return NextResponse.json(
                 {
-                    success: false,
                     msg: "You are not allowed to validate this ticket"
                 },
                 { status: 403 }
@@ -119,7 +110,6 @@ export async function POST(req: NextRequest) {
         if (ticket.status === "CANCELLED") {
             return NextResponse.json(
                 {
-                    success: false,
                     msg: "Ticket has been cancelled"
                 },
                 { status: 409 }
@@ -129,7 +119,6 @@ export async function POST(req: NextRequest) {
         if (ticket.status === "USED") {
             return NextResponse.json(
                 {
-                    success: false,
                     msg: "Ticket has already been used"
                 },
                 { status: 409 }
@@ -152,7 +141,6 @@ export async function POST(req: NextRequest) {
         if (updatedTicket.count !== 1) {
             return NextResponse.json(
                 {
-                    success: false,
                     msg: "Ticket has already been used or is no longer active"
                 },
                 { status: 409 }
@@ -186,7 +174,6 @@ export async function POST(req: NextRequest) {
         // 13. Return success
         return NextResponse.json(
             {
-                success: true,
                 msg: "Ticket validated successfully",
                 ticket: validatedTicket
             },
@@ -198,7 +185,6 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(
             {
-                success: false,
                 msg: "Internal Server Error"
             },
             { status: 500 }
