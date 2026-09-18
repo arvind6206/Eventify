@@ -330,6 +330,7 @@ model Ticket {
 
   issuedAt      DateTime     @default(now())
   usedAt        DateTime?
+  qrScannedAt   DateTime?
 
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt

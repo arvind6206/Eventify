@@ -16,13 +16,7 @@ interface BookingFlowProps {
   submitReservation: (data: any) => Promise<void>;
 }
 
-interface TicketType {
-  id: string;
-  name: string;
-  description?: string | null;
-  price: number;
-  quantity: number;
-}
+
 
 export function BookingFlow({ event, ticketTypes, close, submitReservation }: BookingFlowProps) {
   const [selectedTicketType, setSelectedTicketType] = useState<string>("");

@@ -242,7 +242,7 @@ export async function GET(req: NextRequest) {
       },
       include: {
         event: true,
-        items: {
+        bookingItems: {
           include: {
             ticketType: true,
             eventSeat: {
@@ -257,16 +257,6 @@ export async function GET(req: NextRequest) {
         createdAt: "desc"
       }
     });
-
-    if (findBooking.length === 0) {
-      return NextResponse.json(
-        {
-          msg: "Booking not found",
-          findBooking,
-        },
-        { status: 404 },
-      );
-    }
 
     return NextResponse.json(
       {

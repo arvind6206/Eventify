@@ -18,6 +18,8 @@ export function apiMessage(error: unknown, fallback = "Something went wrong. Ple
     const data = error.response?.data as { msg?: string; message?: string; error?: Record<string, string[]> } | undefined;
     if (data?.msg || data?.message) return data.msg ?? data.message ?? fallback;
     if (data?.error) return Object.values(data.error).flat().join(" ") || fallback;
+    // Handle 409 Conflict specifically
+    if (error.response?.status === 409) return data?.msg ?? "A record with this information already exists.";
   }
   return fallback;
 }

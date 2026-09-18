@@ -73,7 +73,7 @@ export async function POST(
     if (!result.success) {
       return NextResponse.json({
         error: result.error.flatten().fieldErrors,
-      });
+      }, { status: 400 });
     }
 
     const { name, description, price, quantity } = result.data;
@@ -134,12 +134,6 @@ export async function GET(req: NextRequest,
                 eventId: id
             }
         })
-
-        if(tickets.length === 0){
-            return NextResponse.json({
-                msg: "ticket not found"
-            }, {status: 404})
-        }
 
         return NextResponse.json({
             msg: "Tickets fetched successfully",

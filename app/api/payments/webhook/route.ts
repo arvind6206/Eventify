@@ -5,7 +5,7 @@ export async function POST(req: NextRequest){
     try {
         const body = await req.json()
 
-        const {paymentId, status} = body
+        const {paymentId, status, method} = body
         if(!paymentId || !status){
             return NextResponse.json({
                 msg: "paymentId and status are required"
@@ -105,7 +105,8 @@ export async function POST(req: NextRequest){
                     id: payment.id,
                 },
                 data: {
-                    status: "SUCCESS"
+                    status: "SUCCESS",
+                    method: method || payment.method || "CARD"
                 }
             })
 
@@ -147,6 +148,16 @@ export async function POST(req: NextRequest){
                 }
             }
 
+            // Update reservation status to CONFIRMED
+            await tx.reservation.update({
+                where: {
+                    id: reservation.id
+                },
+                data: {
+                    status: "CONFIRMED"
+                }
+            })
+
             //connect payment to Booking
 
             await tx.payment.update({
@@ -158,10 +169,27 @@ export async function POST(req: NextRequest){
                 }
             })
 
+            // Generate tickets automatically
+            const ticketCode = `EVT-${crypto.randomUUID()}`
+            const createdTickets = []
+            
+            for(let i = 0; i < reservation.quantity; i++){
+                const ticket = await tx.ticket.create({
+                    data: {
+                        bookingId: booking.id,
+                        bookingItemId: bookingItem.id,
+                        ticketCode: ticketCode,
+                        status: "ACTIVE"
+                    }
+                })
+                createdTickets.push(ticket)
+            }
+
             return {
                 payment: updatedPayment,
                 booking,
-                bookingItem
+                bookingItem,
+                tickets: createdTickets
             }
 
         })
@@ -170,7 +198,9 @@ export async function POST(req: NextRequest){
             msg: "Payment processed successfully",
             payment: result.payment,
             booking: result.booking,
-            bookingItem: result.bookingItem
+            bookingItem: result.bookingItem,
+            tickets: result.tickets,
+            reservationId: reservation.id
         }, {status: 200})
     } catch (error) {
         console.error("Payment webhook error:", error);

@@ -121,10 +121,133 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingPayment) {
+      // If payment already exists and is PENDING, try to process it
+      if (existingPayment.status === "PENDING") {
+        try {
+          // Process existing payment directly
+          const result = await prismaClient.$transaction(async (tx) => {
+            // Get reservation details
+            const existingReservation = await tx.reservation.findUnique({
+              where: { id: existingPayment.reservationId },
+              include: { ticketType: true }
+            });
+
+            if (!existingReservation || existingReservation.status !== "ACTIVE") {
+              throw new Error("Reservation not valid for processing");
+            }
+
+            // Update payment status
+            const updatedPayment = await tx.payment.update({
+              where: {
+                id: existingPayment.id,
+              },
+              data: {
+                status: "SUCCESS",
+                method: body.method || existingPayment.method || "CARD"
+              }
+            });
+
+            // Create booking
+            const booking = await tx.booking.create({
+              data: {
+                userId: existingPayment.userId,
+                eventId: existingReservation.eventId,
+                totalAmount: existingPayment.amount,
+                status: "CONFIRMED"
+              }
+            });
+
+            // Create booking item
+            const bookingItem = await tx.bookingItem.create({
+              data: {
+                bookingId: booking.id,
+                eventSeatId: existingReservation.eventSeatId,
+                ticketTypeId: existingReservation.ticketTypeId,
+                quantity: existingReservation.quantity,
+                unitPrice: existingReservation.ticketType?.price || 0,
+                totalPrice: existingPayment.amount
+              }
+            });
+
+            // Update reservation status
+            await tx.reservation.update({
+              where: {
+                id: existingReservation.id
+              },
+              data: {
+                status: "CONFIRMED"
+              }
+            });
+
+            // Update event seat if exists
+            if (existingReservation.eventSeatId) {
+              await tx.eventSeat.updateMany({
+                where: {
+                  id: existingReservation.eventSeatId,
+                  status: "RESERVED"
+                },
+                data: {
+                  status: "BOOKED"
+                }
+              });
+            }
+
+            // Connect payment to booking
+            await tx.payment.update({
+              where: {
+                id: existingPayment.id,
+              },
+              data: {
+                bookingId: booking.id
+              }
+            });
+
+            // Generate tickets automatically
+            const ticketCode = `EVT-${crypto.randomUUID()}`
+            const createdTickets = []
+            
+            for(let i = 0; i < existingReservation.quantity; i++){
+              const ticket = await tx.ticket.create({
+                data: {
+                  bookingId: booking.id,
+                  bookingItemId: bookingItem.id,
+                  ticketCode: ticketCode,
+                  status: "ACTIVE"
+                }
+              })
+              createdTickets.push(ticket)
+            }
+
+            return {
+              payment: updatedPayment,
+              booking,
+              bookingItem,
+              tickets: createdTickets
+            };
+          });
+
+          return NextResponse.json(
+            {
+              success: true,
+              message: "Payment processed successfully",
+              payment: result.payment,
+              booking: result.booking,
+              tickets: result.tickets,
+            },
+            { status: 200 }
+          );
+        } catch (webhookError) {
+          console.error('Payment processing failed for existing payment:', webhookError);
+        }
+      }
+      
+      // If payment exists and is not PENDING, or processing failed, return existing payment
       return NextResponse.json(
         {
           success: false,
-          message: "Payment already exists for this reservation",
+          message: existingPayment.status === "SUCCESS" 
+            ? "Payment already completed" 
+            : "Payment already exists for this reservation",
           payment: existingPayment,
         },
         { status: 409 }
@@ -143,18 +266,127 @@ export async function POST(req: NextRequest) {
         userId,
         amount: totalAmount,
         status: "PENDING",
+        method: body.method || "CARD",
       },
     });
 
-    // 12. Return response
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Payment created successfully",
-        payment,
-      },
-      { status: 201 }
-    );
+    // 12. Process payment immediately using direct database operations
+    // This simulates payment gateway success without webhook call
+    try {
+      const result = await prismaClient.$transaction(async (tx) => {
+        // Update payment status
+        const updatedPayment = await tx.payment.update({
+          where: {
+            id: payment.id,
+          },
+          data: {
+            status: "SUCCESS",
+            method: body.method || "CARD"
+          }
+        });
+
+        // Create booking
+        const booking = await tx.booking.create({
+          data: {
+            userId: payment.userId,
+            eventId: reservation.eventId,
+            totalAmount: payment.amount,
+            status: "CONFIRMED"
+          }
+        });
+
+        // Create booking item
+        const bookingItem = await tx.bookingItem.create({
+          data: {
+            bookingId: booking.id,
+            eventSeatId: reservation.eventSeatId,
+            ticketTypeId: reservation.ticketTypeId,
+            quantity: reservation.quantity,
+            unitPrice: reservation.ticketType.price,
+            totalPrice: payment.amount
+          }
+        });
+
+        // Update reservation status
+        await tx.reservation.update({
+          where: {
+            id: reservation.id
+          },
+          data: {
+            status: "CONFIRMED"
+          }
+        });
+
+        // Update event seat if exists
+        if (reservation.eventSeatId) {
+          await tx.eventSeat.updateMany({
+            where: {
+              id: reservation.eventSeatId,
+              status: "RESERVED"
+            },
+            data: {
+              status: "BOOKED"
+            }
+          });
+        }
+
+        // Connect payment to booking
+        await tx.payment.update({
+          where: {
+            id: payment.id,
+          },
+          data: {
+            bookingId: booking.id
+          }
+        });
+
+        // Generate tickets automatically
+        const ticketCode = `EVT-${crypto.randomUUID()}`
+        const createdTickets = []
+        
+        for(let i = 0; i < reservation.quantity; i++){
+          const ticket = await tx.ticket.create({
+            data: {
+              bookingId: booking.id,
+              bookingItemId: bookingItem.id,
+              ticketCode: ticketCode,
+              status: "ACTIVE"
+            }
+          })
+          createdTickets.push(ticket)
+        }
+
+        return {
+          payment: updatedPayment,
+          booking,
+          bookingItem,
+          tickets: createdTickets
+        };
+      });
+
+      // 13. Return response with booking information
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Payment processed successfully",
+          payment: result.payment,
+          booking: result.booking,
+          tickets: result.tickets,
+        },
+        { status: 201 }
+      );
+    } catch (transactionError) {
+      console.error('Payment processing transaction failed:', transactionError);
+      // Still return the payment even if transaction fails, as it's in PENDING state
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Payment created but processing may be delayed",
+          payment,
+        },
+        { status: 201 }
+      );
+    }
   } catch (error) {
     console.error("Create payment error:", error);
 
@@ -184,6 +416,14 @@ export async function GET(req: NextRequest) {
         const payments = await prismaClient.payment.findMany({
             where: {
                 userId
+            },
+            include: {
+                reservation: {
+                    include: {
+                        event: true
+                    }
+                },
+                booking: true
             },
             orderBy: {
                 createdAt: "desc"

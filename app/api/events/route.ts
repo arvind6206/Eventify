@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     if (findOrganizer.role === "USER") {
       return NextResponse.json({
         msg: "User not allowed to create events",
-      });
+      }, { status: 403 });
     }
 
     const result = EventSchema.safeParse(body);
@@ -69,6 +69,9 @@ export async function POST(req: NextRequest) {
         imageUrl,
         organizerId,
       },
+      include: {
+        ticketTypes: true
+      }
     });
 
     return NextResponse.json({
@@ -113,20 +116,44 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // For users, return all published events for booking
+    // For organizers, return only their own events
+    // For admins, return all events
+    let findEvents;
     
-
-    const findEvents = await prismaClient.event.findMany({
-      where: {
-        organizerId: organizerId,
-      },
-    });
+    if (findOrganizer.role === "USER") {
+      findEvents = await prismaClient.event.findMany({
+        where: {
+          status: "PUBLISHED"
+        },
+        include: {
+          ticketTypes: true
+        }
+      });
+    } else if (findOrganizer.role === "ORGANIZER") {
+      findEvents = await prismaClient.event.findMany({
+        where: {
+          organizerId: organizerId,
+        },
+        include: {
+          ticketTypes: true
+        }
+      });
+    } else { // ADMIN
+      findEvents = await prismaClient.event.findMany({
+        include: {
+          ticketTypes: true
+        }
+      });
+    }
 
     if (findEvents.length === 0) {
       return NextResponse.json(
         {
           msg: "Events not found",
+          findEvents: [],
         },
-        { status: 404 },
+        { status: 200 },
       );
     }
 

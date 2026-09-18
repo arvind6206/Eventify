@@ -12,7 +12,7 @@ export async function GET(
     if (!organizerId) {
       return NextResponse.json(
         {
-          mag: "Unauthorized",
+          msg: "Unauthorized",
         },
         { status: 401 },
       );
@@ -48,6 +48,9 @@ export async function GET(
         id,
         organizerId: organizerId,
       },
+      include: {
+        ticketTypes: true
+      }
     });
 
     if (!findEvent) {
@@ -142,6 +145,9 @@ export async function PATCH(
         where: {
           id,
         },
+        include: {
+          ticketTypes: true
+        }
       });
     } else {
       findEvent = await prismaClient.event.findFirst({
@@ -149,6 +155,9 @@ export async function PATCH(
           id,
           organizerId: userId,
         },
+        include: {
+          ticketTypes: true
+        }
       });
     }
 
@@ -259,6 +268,9 @@ export async function DELETE(
         where: {
           id,
         },
+        include: {
+          ticketTypes: true
+        }
       });
     } else {
       findEvent = await prismaClient.event.findFirst({
@@ -266,6 +278,9 @@ export async function DELETE(
           id,
           organizerId: userId,
         },
+        include: {
+          ticketTypes: true
+        }
       });
     }
 
