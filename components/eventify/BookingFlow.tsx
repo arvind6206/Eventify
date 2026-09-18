@@ -14,6 +14,7 @@ interface BookingFlowProps {
   ticketTypes: TicketType[];
   close: () => void;
   submitReservation: (data: any) => Promise<void>;
+  submitPayment: (data: { reservationId: string; method: string }) => Promise<void>;
 }
 
 
