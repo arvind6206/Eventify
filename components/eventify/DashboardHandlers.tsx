@@ -183,10 +183,8 @@ export function createDashboardHandlers(props: DashboardHandlersProps) {
   async function submitReservation(data: { eventId: string; ticketTypeId: string; quantity: number }) {
     try {
       const response = await api.post("/api/reservations", data);
-      setNotice({ kind: "success", text: "Reservation created successfully. Complete payment to confirm booking." });
-      setPaymentReservation(response.data.reservation);
-      setShowPaymentForm(true);
-      await refreshWorkspace();
+      setNotice({ kind: "success", text: "Reservation created successfully." });
+      return response.data.reservation;
     } catch (error) {
       setNotice({ kind: "error", text: apiMessage(error) });
       throw error;
@@ -213,8 +211,6 @@ export function createDashboardHandlers(props: DashboardHandlersProps) {
         setNotice({ kind: "success", text: "Payment initiated. Your booking will be confirmed shortly." });
       }
       
-      setShowPaymentForm(false);
-      setPaymentReservation(null);
       await refreshWorkspace();
     } catch (error) {
       setNotice({ kind: "error", text: apiMessage(error) });

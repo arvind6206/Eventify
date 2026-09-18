@@ -19,6 +19,7 @@ interface WorkspaceContentProps {
   addSeat: (venueId: string) => void;
   bookEvent: (eventId: string) => void;
   onPay: (reservation: Reservation) => void;
+  adminAnalytics?: any;
 }
 
 export function WorkspaceContent(props: WorkspaceContentProps) {
@@ -39,6 +40,7 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
     addSeat,
     bookEvent,
     onPay,
+    adminAnalytics,
   } = props;
   
   if (view === "overview")
@@ -49,6 +51,8 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
         reservations={reservations}
         onCreate={userRole === "USER" ? undefined : createEvent}
         userRole={userRole}
+        adminAnalytics={adminAnalytics}
+        tickets={tickets}
       />
     );
   if (view === "events")

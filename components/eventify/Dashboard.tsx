@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [search, setSearch] = useState("");
+  const [adminAnalytics, setAdminAnalytics] = useState<any>(null);
 
   const refreshWorkspace = useCallback(async () => {
     setLoading(true);
@@ -83,8 +84,20 @@ export default function Dashboard() {
       setReservations([]);
     if (ticket.status === "fulfilled")
       setTickets(ticket.value.data.tickets ?? []);
+    
+    // Fetch admin analytics if user is admin
+    if (userRole === "ADMIN") {
+      try {
+        const analyticsResponse = await api.get("/api/admin/analytics");
+        setAdminAnalytics(analyticsResponse.data.analytics);
+      } catch (error) {
+        console.error("Failed to fetch admin analytics:", error);
+        setAdminAnalytics(null);
+      }
+    }
+    
     setLoading(false);
-  }, []);
+  }, [userRole]);
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("eventify-token");
@@ -193,6 +206,7 @@ export default function Dashboard() {
                   setPaymentReservation(reservation);
                   setShowPaymentForm(true);
                 }}
+                adminAnalytics={adminAnalytics}
               />
             )}
           </div>
@@ -237,6 +251,7 @@ export default function Dashboard() {
             setTicketTypes([]);
           }}
           submitReservation={handlers.submitReservation}
+          submitPayment={handlers.submitPayment}
         />
       )}
       {showPaymentForm && paymentReservation && (

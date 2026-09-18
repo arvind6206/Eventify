@@ -8,6 +8,7 @@ import {
 } from "./ui";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { AdminOverview } from "./AdminOverview";
 
 export function OverviewView({
   events,
@@ -15,13 +16,22 @@ export function OverviewView({
   reservations,
   onCreate,
   userRole,
+  adminAnalytics,
+  tickets,
 }: {
   events: EventRecord[];
   bookings: Booking[];
   reservations: Reservation[];
   onCreate?: () => void;
   userRole: UserRole;
+  adminAnalytics?: any;
+  tickets?: Ticket[];
 }) {
+  // Use AdminOverview for admin users
+  if (userRole === "ADMIN") {
+    return <AdminOverview events={events} bookings={bookings} tickets={tickets} adminAnalytics={adminAnalytics} onCreate={onCreate} />;
+  }
+  
   const total = bookings
     .filter((item) => item.status === "CONFIRMED")
     .reduce((sum, item) => sum + Number(item.totalAmount), 0);
@@ -31,6 +41,8 @@ export function OverviewView({
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
     )
     .slice(0, 3);
+  
+  // Regular user stats
   const stats = [
     [
       String(events.length),
@@ -237,7 +249,7 @@ function EventCard({
 }) {
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60">
-      <div className="relative h-32 bg-gradient-to-br from-violet-600 via-indigo-600 to-fuchsia-500 p-4">
+      <div className="relative h-40 bg-gradient-to-br from-violet-600 via-indigo-600 to-fuchsia-500 p-4">
         {event.imageUrl && (
           <div
             className="absolute inset-0 bg-cover bg-center opacity-45"
@@ -245,36 +257,36 @@ function EventCard({
           />
         )}
         <div className="relative flex justify-between">
-          <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-slate-700">
+          <span className="rounded-full bg-white/90 backdrop-blur-sm px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm">
             {event.category}
           </span>
           <Status value={event.status} />
         </div>
-        <p className="absolute bottom-4 left-4 rounded-lg bg-black/15 px-2 py-1 text-xs font-medium text-white backdrop-blur">
+        <p className="absolute bottom-4 left-4 rounded-lg bg-black/30 backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-white">
           {formatDate(event.startTime)}
         </p>
       </div>
       <div className="p-5">
-        <h3 className="truncate text-base font-semibold">{event.title}</h3>
-        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-slate-500">
+        <h3 className="truncate text-lg font-bold text-slate-900">{event.title}</h3>
+        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-6 text-slate-600">
           {event.description || "No description has been added yet."}
         </p>
         <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-          <span className="truncate pr-3 text-xs text-slate-500">
+          <span className="truncate pr-3 text-sm text-slate-500 font-medium">
             {venue?.name ?? "Venue not found"}
           </span>
           <div className="flex gap-2">
             {onTicket && (
               <button
                 onClick={() => onTicket(event.id)}
-                className="shrink-0 rounded-lg bg-violet-50 px-2.5 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-100"
+                className="shrink-0 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-2 text-xs font-semibold text-violet-700 hover:from-violet-100 hover:to-purple-100 transition-all"
               >
                 Add tickets
               </button>
             )}
             <button
               onClick={() => onBook(event.id)}
-              className="shrink-0 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+              className="shrink-0 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-2 text-xs font-semibold text-emerald-700 hover:from-emerald-100 hover:to-teal-100 transition-all"
             >
               Book now
             </button>

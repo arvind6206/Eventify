@@ -34,26 +34,27 @@ export function LandingPage({
       {/* Hero Section */}
       <section className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-16 lg:grid-cols-[1.12fr_.88fr] lg:px-10 lg:pt-24">
         <div className="max-w-2xl">
-          <span className="inline-flex rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-violet-700 ring-1 ring-violet-100">
-            EVENT OPERATIONS, MADE BEAUTIFUL
+          <span className="inline-flex rounded-full bg-gradient-to-r from-violet-100 to-fuchsia-100 px-4 py-2 text-xs font-bold text-violet-700 ring-1 ring-violet-200 shadow-sm">
+            ✨ EVENT OPERATIONS, MADE BEAUTIFUL
           </span>
-          <h1 className="mt-6 text-5xl font-semibold leading-[1.03] tracking-[-.055em] text-slate-950 sm:text-6xl">
-            Every great event starts with a clear view.
+          <h1 className="mt-8 text-5xl font-bold leading-[1.1] tracking-tight text-slate-900 sm:text-6xl lg:text-7xl">
+            Every great event starts with a 
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-600"> clear view.</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
             Plan events, manage tickets, and keep an eye on every booking from
             one calm, connected workspace.
           </p>
-          <div className="mt-9 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap gap-4">
             <button
               onClick={() => openAuth("register")}
-              className={primaryButton}
+              className="px-8 py-4 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold hover:from-violet-700 hover:to-fuchsia-700 shadow-lg shadow-violet-200 transition-all hover:scale-105"
             >
-              Create your workspace&nbsp; →
+              Create your workspace →
             </button>
             <button
               onClick={() => openAuth("login")}
-              className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-white"
+              className="px-8 py-4 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-semibold hover:border-violet-300 hover:text-violet-700 transition-all"
             >
               I already have an account
             </button>
@@ -63,54 +64,60 @@ export function LandingPage({
       </section>
 
       {/* Features Section */}
-      <section className="relative mx-auto max-w-7xl px-6 py-20 lg:px-10">
+      <section className="relative mx-auto max-w-7xl px-6 py-24 lg:px-10 bg-gradient-to-b from-white to-violet-50/30">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+          <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
             Everything you need to manage events
           </h2>
-          <p className="mt-4 text-lg text-slate-600">
-            From venue management to ticket sales, Eventify handles it all.
+          <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
+            From venue management to ticket sales, Eventify handles it all with elegance and efficiency.
           </p>
         </div>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {[
             {
-              icon: "⌂",
+              icon: "🏟️",
               title: "Venue Management",
-              description: "Create and manage venues with detailed seat layouts and capacity tracking."
+              description: "Create and manage venues with detailed seat layouts and capacity tracking.",
+              gradient: "from-orange-100 to-amber-100"
             },
             {
-              icon: "✦",
+              icon: "🎪",
               title: "Event Creation",
-              description: "Set up events with multiple ticket types, pricing tiers, and scheduling."
+              description: "Set up events with multiple ticket types, pricing tiers, and scheduling.",
+              gradient: "from-violet-100 to-purple-100"
             },
             {
-              icon: "◉",
+              icon: "🎫",
               title: "Ticket Management",
-              description: "Generate unique QR codes for tickets with real-time validation and tracking."
+              description: "Generate unique QR codes for tickets with real-time validation and tracking.",
+              gradient: "from-emerald-100 to-teal-100"
             },
             {
-              icon: "▣",
+              icon: "📋",
               title: "Booking System",
-              description: "Streamlined booking flow with payment integration and reservation management."
+              description: "Streamlined booking flow with payment integration and reservation management.",
+              gradient: "from-blue-100 to-cyan-100"
             },
             {
-              icon: "◷",
+              icon: "📊",
               title: "Real-time Analytics",
-              description: "Track bookings, revenue, and attendance with live dashboards and reports."
+              description: "Track bookings, revenue, and attendance with live dashboards and reports.",
+              gradient: "from-pink-100 to-rose-100"
             },
             {
-              icon: "⚡",
+              icon: "👥",
               title: "Multi-role Access",
-              description: "Organizers, admins, and attendees with role-based permissions and workflows."
+              description: "Organizers, admins, and attendees with role-based permissions and workflows.",
+              gradient: "from-indigo-100 to-violet-100"
             }
           ].map((feature) => (
-            <div key={feature.title} className="rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-lg transition-shadow">
-              <div className="grid h-12 w-12 place-items-center rounded-xl bg-violet-100 text-2xl text-violet-700">
+            <div key={feature.title} className={`rounded-2xl border border-slate-100 bg-gradient-to-br ${feature.gradient} p-8 hover:shadow-xl hover:scale-105 transition-all duration-300`}>
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white shadow-sm text-3xl">
                 {feature.icon}
               </div>
-              <h3 className="mt-4 text-lg font-semibold">{feature.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{feature.description}</p>
+              <h3 className="mt-6 text-xl font-bold text-slate-900">{feature.title}</h3>
+              <p className="mt-3 text-slate-600 leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
@@ -156,18 +163,19 @@ export function LandingPage({
       </section>
 
       {/* Stats Section */}
-      <section className="relative mx-auto max-w-7xl px-6 py-20 lg:px-10">
-        <div className="rounded-3xl bg-slate-950 p-12 text-white">
+      <section className="relative mx-auto max-w-7xl px-6 py-24 lg:px-10">
+        <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12 text-white shadow-2xl">
           <div className="grid gap-8 md:grid-cols-4 text-center">
             {[
-              { value: "10K+", label: "Events Managed" },
-              { value: "500K+", label: "Tickets Sold" },
-              { value: "98%", label: "Uptime" },
-              { value: "24/7", label: "Support" }
+              { value: "10K+", label: "Events Managed", icon: "🎪" },
+              { value: "500K+", label: "Tickets Sold", icon: "🎫" },
+              { value: "98%", label: "Uptime", icon: "⚡" },
+              { value: "24/7", label: "Support", icon: "💬" }
             ].map((stat) => (
               <div key={stat.label}>
-                <div className="text-4xl font-bold">{stat.value}</div>
-                <div className="mt-2 text-sm text-slate-400">{stat.label}</div>
+                <div className="text-3xl mb-2">{stat.icon}</div>
+                <div className="text-4xl font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">{stat.value}</div>
+                <div className="mt-2 text-sm text-slate-400 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>
