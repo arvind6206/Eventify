@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Booking, Reservation, Ticket } from "./types";
 import { EmptyState, formatDate, formatMoney, Status } from "./ui";
 import { Button } from "../ui/button";
@@ -11,6 +12,16 @@ export function BookingsView({
   reservations: Reservation[];
   onPay: (reservation: Reservation) => void;
 }) {
+  const [search, setSearch] = useState("");
+  
+  const filteredBookings = bookings.filter(booking =>
+    `${booking.event?.title ?? ""} ${booking.status}`.toLowerCase().includes(search.toLowerCase())
+  );
+  
+  const filteredReservations = reservations.filter(reservation =>
+    `${reservation.event?.title ?? ""} ${reservation.status}`.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <>
       <div>
@@ -21,15 +32,24 @@ export function BookingsView({
           A live view of orders from your authenticated account.
         </p>
       </div>
+      <div className="mt-6 flex h-11 max-w-md items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
+        <span className="text-slate-400">⌕</span>
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm outline-none placeholder:text-slate-400"
+          placeholder="Search bookings or reservations"
+        />
+      </div>
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <section className="rounded-[1.5rem] border border-slate-200 bg-white p-5">
           <div className="mb-5 flex items-center justify-between">
             <h3 className="font-semibold">Bookings</h3>
-            <span className="text-sm text-slate-400">{bookings.length}</span>
+            <span className="text-sm text-slate-400">{filteredBookings.length} of {bookings.length}</span>
           </div>
-          {bookings.length ? (
+          {filteredBookings.length ? (
             <div className="grid gap-3">
-              {bookings.map((item) => (
+              {filteredBookings.map((item) => (
                 <div
                   key={item.id}
                   className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3"
@@ -56,8 +76,8 @@ export function BookingsView({
             </div>
           ) : (
             <EmptyState
-              title="No bookings yet"
-              body="Confirmed booking records will show up here."
+              title={search ? "No bookings match that search" : "No bookings yet"}
+              body={search ? "Try a different search term." : "Confirmed booking records will show up here."}
             />
           )}
         </section>
@@ -65,12 +85,12 @@ export function BookingsView({
           <div className="mb-5 flex items-center justify-between">
             <h3 className="font-semibold">Reservations</h3>
             <span className="text-sm text-slate-400">
-              {reservations.length}
+              {filteredReservations.length} of {reservations.length}
             </span>
           </div>
-          {reservations.length ? (
+          {filteredReservations.length ? (
             <div className="grid gap-3">
-              {reservations.map((item) => (
+              {filteredReservations.map((item) => (
                 <div
                   key={item.id}
                   className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3"
@@ -104,8 +124,8 @@ export function BookingsView({
             </div>
           ) : (
             <EmptyState
-              title="No active history"
-              body="Reservations you make through the booking flow will show up here."
+              title={search ? "No reservations match that search" : "No active history"}
+              body={search ? "Try a different search term." : "Reservations you make through the booking flow will show up here."}
             />
           )}
         </section>
@@ -115,6 +135,12 @@ export function BookingsView({
 }
 
 export function TicketsView({ tickets }: { tickets: Ticket[] }) {
+  const [search, setSearch] = useState("");
+  
+  const filteredTickets = tickets.filter(ticket =>
+    `${ticket.ticketCode} ${ticket.booking?.event?.title ?? ""} ${ticket.status}`.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <>
       <div>
@@ -123,9 +149,18 @@ export function TicketsView({ tickets }: { tickets: Ticket[] }) {
           Tickets generated from your confirmed bookings.
         </p>
       </div>
-      {tickets.length ? (
+      <div className="mt-6 flex h-11 max-w-md items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
+        <span className="text-slate-400">⌕</span>
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm outline-none placeholder:text-slate-400"
+          placeholder="Search tickets by code, event, or status"
+        />
+      </div>
+      {filteredTickets.length ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {tickets.map((ticket) => (
+          {filteredTickets.map((ticket) => (
             <article
               key={ticket.id}
               className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white"
@@ -165,8 +200,8 @@ export function TicketsView({ tickets }: { tickets: Ticket[] }) {
       ) : (
         <div className="mt-6">
           <EmptyState
-            title="Your ticket wallet is waiting"
-            body="When a confirmed booking has generated tickets, they will appear here with their live status."
+            title={search ? "No tickets match that search" : "Your ticket wallet is waiting"}
+            body={search ? "Try a different search term." : "When a confirmed booking has generated tickets, they will appear here with their live status."}
           />
         </div>
       )}

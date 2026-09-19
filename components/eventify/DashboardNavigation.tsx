@@ -8,16 +8,17 @@ export const getNavItems = (role: UserRole): { id: WorkspaceView; label: string;
     { id: "venues" as WorkspaceView, label: "Venues", icon: "🏟️" },
     { id: "bookings" as WorkspaceView, label: "Bookings", icon: "📋" },
     { id: "tickets" as WorkspaceView, label: "Tickets", icon: "🎫" },
+    { id: "users" as WorkspaceView, label: "Users", icon: "👥" },
   ];
 
   // All roles can see overview, events, bookings, tickets
-  // Only ADMIN can see venues
+  // Only ADMIN can see venues and users
   if (role === "ADMIN") {
     return allNav;
   }
   
-  // USER and ORGANIZER cannot see venues
-  return allNav.filter(item => item.id !== "venues");
+  // USER and ORGANIZER cannot see venues and users
+  return allNav.filter(item => item.id !== "venues" && item.id !== "users");
 };
 
 export function Sidebar({

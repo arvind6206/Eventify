@@ -47,6 +47,7 @@ export default function Dashboard() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [search, setSearch] = useState("");
   const [adminAnalytics, setAdminAnalytics] = useState<any>(null);
+  const [users, setUsers] = useState<any[]>([]);
 
   const refreshWorkspace = useCallback(async () => {
     setLoading(true);
@@ -90,14 +91,51 @@ export default function Dashboard() {
       try {
         const analyticsResponse = await api.get("/api/admin/analytics");
         setAdminAnalytics(analyticsResponse.data.analytics);
+        
+        // Fetch users
+        const usersResponse = await api.get("/api/admin/users");
+        setUsers(usersResponse.data.users);
       } catch (error) {
-        console.error("Failed to fetch admin analytics:", error);
+        console.error("Failed to fetch admin data:", error);
         setAdminAnalytics(null);
+        setUsers([]);
       }
     }
     
     setLoading(false);
   }, [userRole]);
+
+  async function handleRoleChange(userId: string, newRole: UserRole) {
+    try {
+      await api.patch("/api/admin/users", { id: userId, role: newRole });
+      setNotice({ kind: "success", text: "User role updated successfully" });
+      await refreshWorkspace();
+    } catch (error) {
+      setNotice({ kind: "error", text: "Failed to update user role" });
+    }
+  }
+
+  async function handleDeleteUser(userId: string) {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    
+    try {
+      await api.delete(`/api/admin/users?id=${userId}`);
+      setNotice({ kind: "success", text: "User deleted successfully" });
+      await refreshWorkspace();
+    } catch (error) {
+      setNotice({ kind: "error", text: "Failed to delete user" });
+    }
+  }
+
+  async function handleToggleActive(userId: string, isActive: boolean) {
+    try {
+      await api.put("/api/admin/users", { id: userId, isActive });
+      setNotice({ kind: "success", text: `User ${isActive ? "activated" : "deactivated"} successfully` });
+      await refreshWorkspace();
+    } catch (error) {
+      setNotice({ kind: "error", text: "Failed to update user status" });
+    }
+  }
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("eventify-token");
@@ -153,6 +191,7 @@ export default function Dashboard() {
     setBookings([]);
     setReservations([]);
     setTickets([]);
+    setUsers([]);
     setNotice(null);
   }
 
@@ -207,6 +246,10 @@ export default function Dashboard() {
                   setShowPaymentForm(true);
                 }}
                 adminAnalytics={adminAnalytics}
+                users={users}
+                onRoleChange={handleRoleChange}
+                onDeleteUser={handleDeleteUser}
+                onToggleActive={handleToggleActive}
               />
             )}
           </div>

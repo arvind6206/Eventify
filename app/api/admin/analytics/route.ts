@@ -30,12 +30,7 @@ export async function GET(req: NextRequest) {
     // Get all events
     const allEvents = await prismaClient.event.findMany({
       include: {
-        ticketTypes: true,
-        bookings: {
-          include: {
-            bookingItems: true
-          }
-        }
+        ticketTypes: true
       }
     });
 
@@ -43,11 +38,6 @@ export async function GET(req: NextRequest) {
     const allBookings = await prismaClient.booking.findMany({
       include: {
         event: true,
-        bookingItems: {
-          include: {
-            ticketType: true
-          }
-        },
         user: {
           select: {
             id: true,
@@ -73,12 +63,12 @@ export async function GET(req: NextRequest) {
                 name: true,
                 email: true
               }
-            },
-            bookingItem: {
-              include: {
-                ticketType: true
-              }
             }
+          }
+        },
+        bookingItem: {
+          include: {
+            ticketType: true
           }
         }
       },
@@ -90,12 +80,6 @@ export async function GET(req: NextRequest) {
     // Get all payments
     const allPayments = await prismaClient.payment.findMany({
       include: {
-        reservation: {
-          include: {
-            event: true
-          }
-        },
-        booking: true,
         user: {
           select: {
             id: true,
@@ -104,6 +88,27 @@ export async function GET(req: NextRequest) {
           }
         }
       },
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
+
+    // Get all users
+    const allUsers = await prismaClient.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
+
+    // Get all venues
+    const allVenues = await prismaClient.venue.findMany({
       orderBy: {
         createdAt: "desc"
       }
@@ -127,6 +132,11 @@ export async function GET(req: NextRequest) {
 
     const publishedEvents = allEvents.filter(e => e.status === "PUBLISHED").length;
     const draftEvents = allEvents.filter(e => e.status === "DRAFT").length;
+    const cancelledEvents = allEvents.filter(e => e.status === "CANCELLED").length;
+
+    const totalUsers = allUsers.length;
+    const totalOrganizers = allUsers.filter(u => u.role === "ORGANIZER").length;
+    const totalVenues = allVenues.length;
 
     // Revenue by event
     const revenueByEvent = allEvents.map(event => {
@@ -151,6 +161,7 @@ export async function GET(req: NextRequest) {
           totalEvents: allEvents.length,
           publishedEvents,
           draftEvents,
+          cancelledEvents,
           confirmedBookings,
           pendingBookings,
           cancelledBookings,
@@ -158,12 +169,17 @@ export async function GET(req: NextRequest) {
           usedTickets,
           cancelledTickets,
           successfulPayments,
-          pendingPayments
+          pendingPayments,
+          totalUsers,
+          totalOrganizers,
+          totalVenues
         },
         revenueByEvent,
         recentBookings: allBookings.slice(0, 10),
         recentTickets: allTickets.slice(0, 10),
-        recentPayments: allPayments.slice(0, 10)
+        recentPayments: allPayments.slice(0, 10),
+        recentUsers: allUsers.slice(0, 10),
+        recentVenues: allVenues.slice(0, 10)
       }
     }, { status: 200 });
 

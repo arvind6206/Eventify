@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Booking, EventRecord, Reservation, Ticket, Venue, Seat, UserRole } from "./types";
 import {
   EmptyState,
@@ -298,6 +299,12 @@ function EventCard({
 }
 
 export function VenuesView({ venues, onCreate, onAddSeat, userRole }: { venues: Venue[]; onCreate?: () => void; onAddSeat?: (venueId: string) => void; userRole: UserRole }) {
+  const [search, setSearch] = useState("");
+  
+  const filteredVenues = venues.filter(venue =>
+    `${venue.name} ${venue.city} ${venue.state} ${venue.country}`.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -313,9 +320,18 @@ export function VenuesView({ venues, onCreate, onAddSeat, userRole }: { venues: 
           </button>
         )}
       </div>
-      {venues.length ? (
+      <div className="mt-6 flex h-11 max-w-md items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
+        <span className="text-slate-400">⌕</span>
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm outline-none placeholder:text-slate-400"
+          placeholder="Search venues by name, city, or location"
+        />
+      </div>
+      {filteredVenues.length ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {venues.map((venue) => (
+          {filteredVenues.map((venue) => (
             <article
               key={venue.id}
               className="rounded-[1.5rem] border border-slate-200 bg-white p-5 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60"
@@ -360,15 +376,21 @@ export function VenuesView({ venues, onCreate, onAddSeat, userRole }: { venues: 
       ) : (
         <div className="mt-6">
           <EmptyState
-            title="No venues available"
-            body="Venues are managed by administrators. Create your first venue to enable event creation."
+            title={search ? "No venues match that search" : "No venues available"}
+            body={
+              search
+                ? "Try a different venue name or location."
+                : "Venues are managed by administrators. Create your first venue to enable event creation."
+            }
             action={
-              <button
-                onClick={onCreate}
-                className="text-sm font-semibold text-violet-700"
-              >
-                Create a venue →
-              </button>
+              !search ? (
+                <button
+                  onClick={onCreate}
+                  className="text-sm font-semibold text-violet-700"
+                >
+                  Create a venue →
+                </button>
+              ) : undefined
             }
           />
         </div>

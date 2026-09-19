@@ -1,4 +1,4 @@
-export type WorkspaceView = "overview" | "events" | "venues" | "bookings" | "tickets";
+export type WorkspaceView = "overview" | "events" | "venues" | "bookings" | "tickets" | "users";
 export type UserRole = "USER" | "ADMIN" | "ORGANIZER";
 
 export type Notice = { kind: "error" | "success"; text: string } | null;

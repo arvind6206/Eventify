@@ -1,6 +1,7 @@
 import { Booking, EventRecord, Reservation, Ticket, Venue, UserRole, WorkspaceView } from "./types";
 import { EventsView, OverviewView, VenuesView } from "./WorkspaceViews";
 import { BookingsView, TicketsView } from "./CustomerViews";
+import { UsersView } from "./AdminViews";
 
 interface WorkspaceContentProps {
   view: WorkspaceView;
@@ -20,6 +21,10 @@ interface WorkspaceContentProps {
   bookEvent: (eventId: string) => void;
   onPay: (reservation: Reservation) => void;
   adminAnalytics?: any;
+  users?: any[];
+  onRoleChange?: (userId: string, newRole: UserRole) => void;
+  onDeleteUser?: (userId: string) => void;
+  onToggleActive?: (userId: string, isActive: boolean) => void;
 }
 
 export function WorkspaceContent(props: WorkspaceContentProps) {
@@ -41,6 +46,10 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
     bookEvent,
     onPay,
     adminAnalytics,
+    users,
+    onRoleChange,
+    onDeleteUser,
+    onToggleActive,
   } = props;
   
   if (view === "overview")
@@ -71,5 +80,9 @@ export function WorkspaceContent(props: WorkspaceContentProps) {
   if (view === "venues") return <VenuesView venues={venues} onCreate={userRole === "ADMIN" ? createVenue : undefined} onAddSeat={userRole === "ADMIN" ? addSeat : undefined} userRole={userRole} />;
   if (view === "bookings")
     return <BookingsView bookings={bookings} reservations={reservations} onPay={onPay} />;
-  return <TicketsView tickets={tickets} />;
+  if (view === "tickets")
+    return <TicketsView tickets={tickets} />;
+  if (view === "users" && userRole === "ADMIN")
+    return <UsersView users={users || []} onRoleChange={onRoleChange || (() => {})} onDeleteUser={onDeleteUser || (() => {})} onToggleActive={onToggleActive || (() => {})} />;
+  return null;
 }
